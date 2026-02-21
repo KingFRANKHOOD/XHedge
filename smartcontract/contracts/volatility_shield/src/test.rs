@@ -54,6 +54,20 @@ fn test_convert_to_assets() {
     client.set_total_assets(&10);
     client.set_total_shares(&4);
     assert_eq!(client.convert_to_assets(&3), 7);
+
+    // 4. Test larger values
+    client.set_total_assets(&1000);
+    client.set_total_shares(&300);
+    assert_eq!(client.convert_to_assets(&100), 333);
+}
+
+#[test]
+#[should_panic(expected = "negative amount")]
+fn test_convert_to_assets_negative() {
+    let env = Env::default();
+    let contract_id = env.register_contract(None, VolatilityShield);
+    let client = VolatilityShieldClient::new(&env, &contract_id);
+    client.convert_to_assets(&-1);
 }
 
 #[test]
@@ -74,6 +88,25 @@ fn test_convert_to_shares() {
     client.set_total_assets(&3);
     client.set_total_shares(&1);
     assert_eq!(client.convert_to_shares(&10), 3);
+
+    // 3. Standard Proportional Minting
+    client.set_total_assets(&1000);
+    client.set_total_shares(&500);
+    assert_eq!(client.convert_to_shares(&200), 100);
+
+    // 4. Rounding Down with Large Values
+    client.set_total_assets(&300);
+    client.set_total_shares(&1000);
+    assert_eq!(client.convert_to_shares(&100), 333);
+}
+
+#[test]
+#[should_panic(expected = "negative amount")]
+fn test_convert_to_shares_negative() {
+    let env = Env::default();
+    let contract_id = env.register_contract(None, VolatilityShield);
+    let client = VolatilityShieldClient::new(&env, &contract_id);
+    client.convert_to_shares(&-1);
 }
 
 #[test]
