@@ -97,6 +97,7 @@ impl VolatilityShield {
         if env.storage().instance().has(&DataKey::Admin) {
             return Err(Error::AlreadyInitialized);
         }
+        admin.require_auth();
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::Asset, &asset);
         env.storage().instance().set(&DataKey::Oracle, &oracle);
@@ -142,11 +143,11 @@ impl VolatilityShield {
 
         let total_shares = Self::total_shares(&env);
         let total_assets = Self::total_assets(&env);
-        Self::set_total_shares(
+        Self::set_total_shares_internal(
             env.clone(),
             total_shares.checked_add(shares_to_mint).unwrap(),
         );
-        Self::set_total_assets(env.clone(), total_assets.checked_add(amount).unwrap());
+        Self::set_total_assets_internal(env.clone(), total_assets.checked_add(amount).unwrap());
 
         env.events()
             .publish((symbol_short!("Deposit"), from.clone()), amount);
@@ -171,8 +172,8 @@ impl VolatilityShield {
         let total_shares = Self::total_shares(&env);
         let total_assets = Self::total_assets(&env);
 
-        Self::set_total_shares(env.clone(), total_shares.checked_sub(shares).unwrap());
-        Self::set_total_assets(
+        Self::set_total_shares_internal(env.clone(), total_shares.checked_sub(shares).unwrap());
+        Self::set_total_assets_internal(
             env.clone(),
             total_assets.checked_sub(assets_to_withdraw).unwrap(),
         );
@@ -273,7 +274,7 @@ impl VolatilityShield {
 
         if total_yield > 0 {
             let current_assets = Self::total_assets(&env);
-            Self::set_total_assets(
+            Self::set_total_assets_internal(
                 env.clone(),
                 current_assets.checked_add(total_yield).unwrap(),
             );
@@ -399,21 +400,31 @@ impl VolatilityShield {
     }
 
     pub fn set_total_assets(env: Env, amount: i128) {
-        env.storage().instance().set(&DataKey::TotalAssets, &amount);
+        Self::require_admin(&env);
+        Self::set_total_assets_internal(env, amount);
     }
 
     pub fn set_total_shares(env: Env, amount: i128) {
-        env.storage().instance().set(&DataKey::TotalShares, &amount);
+        Self::require_admin(&env);
+        Self::set_total_shares_internal(env, amount);
     }
 
     pub fn set_balance(env: Env, user: Address, amount: i128) {
-        env.storage()
-            .persistent()
-            .set(&DataKey::Balance(user), &amount);
+        Self::require_admin(&env);
+        env.storage().persistent().set(&DataKey::Balance(user), &amount);
     }
 
     pub fn set_token(env: Env, token: Address) {
+        Self::require_admin(&env);
         env.storage().instance().set(&DataKey::Token, &token);
+    }
+
+    fn set_total_assets_internal(env: Env, amount: i128) {
+        env.storage().instance().set(&DataKey::TotalAssets, &amount);
+    }
+
+    fn set_total_shares_internal(env: Env, amount: i128) {
+        env.storage().instance().set(&DataKey::TotalShares, &amount);
     }
 
     fn require_admin_or_oracle(env: &Env, admin: &Address, oracle: &Address) {

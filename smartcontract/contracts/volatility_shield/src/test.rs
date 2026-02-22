@@ -19,6 +19,7 @@ fn create_token_contract<'a>(
 #[test]
 fn test_init_stores_roles() {
     let env = Env::default();
+    env.mock_all_auths();
     let contract_id = env.register_contract(None, VolatilityShield);
     let client = VolatilityShieldClient::new(&env, &contract_id);
 
@@ -44,6 +45,7 @@ fn test_init_stores_roles() {
 #[test]
 fn test_init_already_initialized() {
     let env = Env::default();
+    env.mock_all_auths();
     let contract_id = env.register_contract(None, VolatilityShield);
     let client = VolatilityShieldClient::new(&env, &contract_id);
 
@@ -62,6 +64,7 @@ fn test_init_already_initialized() {
 #[test]
 fn test_convert_to_assets() {
     let env = Env::default();
+    env.mock_all_auths();
     let contract_id = env.register_contract(None, VolatilityShield);
     let client = VolatilityShieldClient::new(&env, &contract_id);
     let admin = Address::generate(&env);
@@ -101,6 +104,7 @@ fn test_convert_to_assets_negative() {
 #[test]
 fn test_convert_to_shares() {
     let env = Env::default();
+    env.mock_all_auths();
     let contract_id = env.register_contract(None, VolatilityShield);
     let client = VolatilityShieldClient::new(&env, &contract_id);
     let admin = Address::generate(&env);
@@ -169,6 +173,7 @@ fn test_convert_to_shares_negative() {
 #[test]
 fn test_take_fees() {
     let env = Env::default();
+    env.mock_all_auths();
     let contract_id = env.register_contract(None, VolatilityShield);
     let client = VolatilityShieldClient::new(&env, &contract_id);
     let admin = Address::generate(&env);
@@ -510,6 +515,7 @@ mod fuzz_tests {
             amount in 0i128..1_000_000_000_000_000_000,
         ) {
             let env = Env::default();
+            env.mock_all_auths();
             let contract_id = env.register_contract(None, VolatilityShield);
             let client = VolatilityShieldClient::new(&env, &contract_id);
             
@@ -533,6 +539,7 @@ mod fuzz_tests {
             shares in 0i128..1_000_000_000_000_000_000,
         ) {
             let env = Env::default();
+            env.mock_all_auths();
             let contract_id = env.register_contract(None, VolatilityShield);
             let client = VolatilityShieldClient::new(&env, &contract_id);
             
