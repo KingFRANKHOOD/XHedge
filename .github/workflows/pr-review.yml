@@ -3,6 +3,11 @@ name: Protocol Liaison (XHedge Reviewer)
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull Request Number to review'
+        required: true
 
 permissions:
   contents: write
@@ -14,9 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ env.PR_NUMBER }}/head
+          fetch-depth: 0
 
       - name: Setup Node & Rust
         uses: dtolnay/rust-toolchain@stable
@@ -41,7 +50,7 @@ jobs:
       - name: ❌ Handle Review Failure
         if: steps.protocol_review.outcome == 'failure'
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "### ❌ XHedge Protocol Review Failed
+          gh pr comment ${{ env.PR_NUMBER }} --body "### ❌ XHedge Protocol Review Failed
           
           The Protocol Liaison detected an issue in either the Smart Contract logic or the Frontend build.
           
@@ -56,7 +65,7 @@ jobs:
       - name: ✅ Handle Review Success
         if: steps.protocol_review.outcome == 'success'
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "### ✅ XHedge Protocol Review Passed
+          gh pr comment ${{ env.PR_NUMBER }} --body "### ✅ XHedge Protocol Review Passed
           
           The Protocol Liaison has verified the structural and logic integrity of both the Contracts and the Dashboard.
           
@@ -65,4 +74,4 @@ jobs:
           
           *Project maintained by @bbkenny.*"
           
-          gh pr merge ${{ github.event.pull_request.number }} --merge --auto
+          gh pr merge ${{ env.PR_NUMBER }} --merge --auto
