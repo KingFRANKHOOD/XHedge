@@ -8,7 +8,7 @@ smartcontract/target/
 node_modules/
 **/node_modules/
 .next/
-**/ .next/
+**/.next/
 out/
 build/
 .env*
