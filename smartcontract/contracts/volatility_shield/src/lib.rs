@@ -233,8 +233,7 @@ impl VolatilityShield {
 
     // ── Strategy Management ───────────────────
     pub fn add_strategy(env: Env, strategy: Address) -> Result<(), Error> {
-        let admin = Self::read_admin(&env);
-        admin.require_auth();
+        Self::require_admin(&env);
 
         let mut strategies: Vec<Address> = env
             .storage()
@@ -258,8 +257,7 @@ impl VolatilityShield {
     }
 
     pub fn harvest(env: Env) -> Result<i128, Error> {
-        let admin = Self::read_admin(&env);
-        admin.require_auth();
+        Self::require_admin(&env);
 
         let strategies = Self::get_strategies(&env);
         if strategies.is_empty() {
@@ -426,10 +424,15 @@ impl VolatilityShield {
         }
     }
 
+    fn require_admin(env: &Env) -> Address {
+        let admin = Self::read_admin(env);
+        admin.require_auth();
+        admin
+    }
+
     // ── Emergency Pause ──────────────────────────
     pub fn set_paused(env: Env, state: bool) {
-        let admin = Self::read_admin(&env);
-        admin.require_auth();
+        Self::require_admin(&env);
         env.storage().instance().set(&DataKey::Paused, &state);
         env.events().publish((symbol_short!("paused"),), state);
     }
