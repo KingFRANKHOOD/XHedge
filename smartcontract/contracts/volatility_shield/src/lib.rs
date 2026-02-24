@@ -16,7 +16,6 @@ pub enum Error {
     NegativeAmount = 3,
     Unauthorized = 4,
     NoStrategies = 5,
-    ContractPaused = 6,
 }
 
 // ─────────────────────────────────────────────
@@ -200,7 +199,7 @@ impl VolatilityShield {
     // ── Rebalance ─────────────────────────────
     /// Move funds between strategies according to `allocations`.
     pub fn rebalance(env: Env, allocations: Map<Address, i128>) {
-        let admin = Self::read_admin(&env);
+        let admin = Self::get_admin(&env);
         let oracle = Self::get_oracle(&env);
 
         Self::require_admin_or_oracle(&env, &admin, &oracle);
@@ -234,7 +233,8 @@ impl VolatilityShield {
 
     // ── Strategy Management ───────────────────
     pub fn add_strategy(env: Env, strategy: Address) -> Result<(), Error> {
-        Self::require_admin(&env);
+        let admin = Self::get_admin(&env);
+        admin.require_auth();
 
         let mut strategies: Vec<Address> = env
             .storage()
@@ -258,7 +258,8 @@ impl VolatilityShield {
     }
 
     pub fn harvest(env: Env) -> Result<i128, Error> {
-        Self::require_admin(&env);
+        let admin = Self::get_admin(&env);
+        admin.require_auth();
 
         let strategies = Self::get_strategies(&env);
         if strategies.is_empty() {
@@ -286,17 +287,6 @@ impl VolatilityShield {
     }
 
     // ── View helpers ──────────────────────────
-    pub fn has_admin(env: &Env) -> bool {
-        env.storage().instance().has(&DataKey::Admin)
-    }
-
-    pub fn read_admin(env: &Env) -> Address {
-        env.storage()
-            .instance()
-            .get(&DataKey::Admin)
-            .expect("Not initialized")
-    }
-
     pub fn total_assets(env: &Env) -> i128 {
         env.storage()
             .instance()
@@ -309,6 +299,13 @@ impl VolatilityShield {
             .instance()
             .get(&DataKey::TotalShares)
             .unwrap_or(0)
+    }
+
+    pub fn get_admin(env: &Env) -> Address {
+        env.storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .expect("Not initialized")
     }
 
     pub fn get_oracle(env: &Env) -> Address {
@@ -411,7 +408,9 @@ impl VolatilityShield {
 
     pub fn set_balance(env: Env, user: Address, amount: i128) {
         Self::require_admin(&env);
-        env.storage().persistent().set(&DataKey::Balance(user), &amount);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(user), &amount);
     }
 
     pub fn set_token(env: Env, token: Address) {
@@ -427,18 +426,17 @@ impl VolatilityShield {
         env.storage().instance().set(&DataKey::TotalShares, &amount);
     }
 
+    fn require_admin(env: &Env) {
+        let admin = Self::get_admin(env);
+        admin.require_auth();
+    }
+
     fn require_admin_or_oracle(env: &Env, admin: &Address, oracle: &Address) {
         if env.storage().instance().has(&DataKey::Admin) {
             admin.require_auth();
         } else {
             oracle.require_auth();
         }
-    }
-
-    fn require_admin(env: &Env) -> Address {
-        let admin = Self::read_admin(env);
-        admin.require_auth();
-        admin
     }
 
     // ── Emergency Pause ──────────────────────────

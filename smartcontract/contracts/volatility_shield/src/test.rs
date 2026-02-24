@@ -2,9 +2,6 @@
 use super::*;
 use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::token::StellarAssetClient;
-use soroban_sdk::{testutils::Address as _, Address, Env, Map};
-
-extern crate std;
 
 fn create_token_contract<'a>(
     env: &Env,
@@ -30,7 +27,7 @@ fn test_init_stores_roles() {
 
     client.init(&admin, &asset, &oracle, &treasury, &500u32);
 
-    assert_eq!(client.read_admin(), admin);
+    assert_eq!(client.get_admin(),  admin);
     assert_eq!(client.get_oracle(), oracle);
     assert_eq!(client.get_asset(), asset);
     assert_eq!(client.treasury(), treasury);
