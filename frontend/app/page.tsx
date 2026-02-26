@@ -7,12 +7,21 @@ import Link from "next/link";
 import { WalletButton } from "./components/WalletButton";
 import { AiInsightStream } from "./components/AiInsightStream";
 import { TransactionList } from "@/components/transaction-list";
+<<<<<<< HEAD
+=======
+import { RiskChart } from "@/components/RiskChart";
+>>>>>>> origin/main
 import { useState, useEffect } from "react";
 
 interface Slice {
   name: string;
   value: number;
 }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> origin/main
 
 export default function Home() {
   const [slices, setSlices] = useState<Slice[] | null>(null);
@@ -47,10 +56,21 @@ export default function Home() {
               <p className="text-muted-foreground">Volatility Shield for Weak Currencies</p>
             </div>
           </div>
-          <WalletButton />
+          <div id="tour-sidebar-wallet">
+            <WalletButton />
+          </div>
         </div>
 
-        <VaultOverviewCard />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <VaultOverviewCard />
+          </div>
+          <div className="lg:col-span-1 flex">
+            <div className="w-full h-full">
+              <RiskChart score={45} />
+            </div>
+          </div>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <Link
