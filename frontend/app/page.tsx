@@ -50,7 +50,9 @@ export default function Home() {
               <p className="text-muted-foreground">Volatility Shield for Weak Currencies</p>
             </div>
           </div>
-          <WalletButton />
+          <div id="tour-sidebar-wallet">
+            <WalletButton />
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
